@@ -1,0 +1,60 @@
+name: build-collector
+
+# Replaces the Tekton kaniko build for the eBPF collector image.
+# GitHub-hosted ubuntu runners ship a BTF-enabled kernel, so vmlinux.h can be
+# generated at build time inside the Docker builder stage.
+#
+# Required repo secrets: DOCKERHUB_USERNAME, DOCKERHUB_TOKEN
+
+on:
+  push:
+    branches: [main, master]
+    paths:
+      - 'src/**'
+      - 'Dockerfile'
+      - 'build.sh'
+      - '.github/workflows/build-collector.yml'
+  pull_request:
+    paths:
+      - 'src/**'
+      - 'Dockerfile'
+  workflow_dispatch: {}
+
+env:
+  IMAGE: johnnaeder/ebpf-portscan-k8s-check
+  TAG: collector-ebpf-s2
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Stage kernel BTF into build context
+        run: |
+          set -euo pipefail
+          mkdir -p btf
+          if [ ! -r /sys/kernel/btf/vmlinux ]; then
+            echo "::error::runner kernel has no BTF (/sys/kernel/btf/vmlinux)"; exit 1
+          fi
+          sudo cp /sys/kernel/btf/vmlinux btf/vmlinux
+          sudo chmod a+r btf/vmlinux
+          echo "staged BTF: $(stat -c%s btf/vmlinux) bytes"
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build (and push on non-PR)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ env.IMAGE }}:${{ env.TAG }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

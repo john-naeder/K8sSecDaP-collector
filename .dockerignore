@@ -1,0 +1,15 @@
+.git
+.github
+build/
+**/build/
+*.o
+*.bpf.o
+*.a
+*.so
+README.md
+Makefile
+CMakeFiles/
+CMakeCache.txt
+.cache/
+.idea/
+.vscode/

@@ -1,0 +1,15 @@
+include:
+  - project: 'john-naeder/ci-templates'
+    ref: main
+    file: '/security.gitlab-ci.yml'
+  # Until that project exists on your GitLab, vendor the file instead:
+  #   - local: '.gitlab/ci/security.yml'
+
+stages:
+  - scan
+  - report
+
+variables:
+  # eBPF (C) plus a Go userspace side. The collector runs privileged on every
+  # node, so iac:trivy on the DaemonSet manifest is worth more than it looks.
+  SECURITY_FAIL_ON: ''

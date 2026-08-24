@@ -1,0 +1,17 @@
+build/
+**/build/
+*.o
+*.a
+*.so
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+compile_commands.json
+.cache/
+.idea/
+.vscode/
+.DS_Store
+vmlinux.h
+*.bpf.o
+# Raw kernel BTF blob staged into the Docker build context by build.sh / CI.
+btf/
