@@ -1,9 +1,10 @@
 include:
-  - project: 'john-naeder/ci-templates'
+  # Namespace là 'root' vì GitLab self-hosted này chạy dưới tài khoản admin
+  # mặc định, không phải tên người dùng GitHub. Sai namespace thì pipeline hỏng
+  # ngay ở bước include, trước khi bất kỳ job nào chạy.
+  - project: 'root/ci-templates'
     ref: main
     file: '/security.gitlab-ci.yml'
-  # Until that project exists on your GitLab, vendor the file instead:
-  #   - local: '.gitlab/ci/security.yml'
 
 stages:
   - scan
